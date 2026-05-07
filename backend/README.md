@@ -42,3 +42,31 @@ Rest API for Employee Management System (EMS) built with FastAPI, SQLAlchemy, an
 - Unit tests for password hashing and verification.
 - Tests for JWT token generation and validation.
 - Tests for password strength validation.
+
+## Database Schema
+
+The ERD for the EMS backend includes the following tables:
+
+### Table
+| Name                   | Description                                                                     |
+|------------------------|---------------------------------------------------------------------------------|
+| `users`                | Stores user information, including username, email, hashed password, role, etc. |
+| `businesses`           | Top level entity representing a business.                                       |
+| `sections`             | Represents different sections within a business (e.g., HR, IT, Sales).          |
+| `positions`            | Represents different positions within a section (e.g., Manager, Developer).     |
+| `permissions`          | Stores permissions for different roles (e.g., Admin, Manager, Employee).        |
+| `shifts`               | Represents work shifts for employees.                                           |
+| `pay_configs`          | Stores pay configuration for different positions.                               |
+| `business_tax_configs` | Stores tax and NI configuration for different businesses.                       |
+| `payslips`             | Generated payslips for employees based on their shifts and pay configuration.   |
+| `holiday_requests`     | Stores holiday requests made by employees.                                      |
+| `audit_logs`           | Logs of important actions for auditing purposes.                                |
+
+### Relationships
+- A `User` belong to one Business and can have one `position`, and one `section`.
+- A `Position` has set of `permissions`.
+- A `Business` has many `sections`, `positions`, `employees`.
+- A `User` has one `pay_config` and many `payslips`, `shifts`, and `holiday_request`.
+- An `AuditLog` is associated with a `User` and records actions taken by that user.
+
+![ERD Diagram](img/ERD.png)
