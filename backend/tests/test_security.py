@@ -56,4 +56,31 @@ class TestPasswordStrength:
         errors = validate_password_strength("Password123")
         assert "Password must contain at least one special character" in errors
 
+class TestTempPassword:
+    """ Test temporary password generation """
+    def test_temp_password_strength(self):
+        temp_pwd = generate_temp_password()
+        assert validate_password_strength(temp_pwd) == []
+
+class TestJWT:
+    """ Test JWT token creation and decoding """
+    def test_create_and_decode_access_token(self):
+        token = create_access_token(subject=1)
+        payload = decode_token(token)
+        assert payload["sub"] == "1"
+        assert payload["type"] == "access"
+
+    def test_create_and_decode_refresh_token(self):
+        token = create_refresh_token(subject=1)
+        payload = decode_token(token)
+        assert payload["sub"] == "1"
+        assert payload["type"] == "refresh"
+
+    def test_decode_invalid_token(self):
+        token = create_access_token(subject=1)
+        tamp = token[:5] + "XXXXX"
+        with pytest.raises(JWTError):
+            decode_token(tamp)
+
+
 
