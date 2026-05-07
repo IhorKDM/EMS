@@ -1,0 +1,9 @@
+.DS_Strore
+Thumbs.db
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*.log
+logs/
