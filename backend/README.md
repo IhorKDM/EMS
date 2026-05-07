@@ -24,6 +24,8 @@ Rest API for Employee Management System (EMS) built with FastAPI, SQLAlchemy, an
 └── README.md
 ```
 
+
+
 ## Security
 - Passwords are hashed using argon2 for secure storage.
 - JWT is used for authentication, with tokens expiring after 30 minutes.
@@ -35,3 +37,8 @@ Rest API for Employee Management System (EMS) built with FastAPI, SQLAlchemy, an
   - At least one digit
   - At least one special character
 - Secret keys and sensitive configurations are stored in environment variables.
+
+## Security tests
+- Unit tests for password hashing and verification.
+- Tests for JWT token generation and validation.
+- Tests for password strength validation.
