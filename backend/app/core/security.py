@@ -42,3 +42,11 @@ def validate_password_strength(password: str) -> list[str]:
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
         errors.append("Password must contain at least one special character")
     return errors
+
+def generate_temp_password() -> str:
+    ''' Generate a temporary password. '''
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    while True:
+        pwd = "".join(secrets.choice(alphabet) for i in range(16))
+        if not validate_password_strength(pwd):
+            return pwd
