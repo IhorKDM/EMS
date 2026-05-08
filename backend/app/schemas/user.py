@@ -80,7 +80,7 @@ class CreateEmployeeRequest(CreateUserBase):
     pass
 
 class UpdateUserRequest(BaseModel):
-    """ Partial update — all fields optional """
+    """ Partial update, all fields optional """
     title: TitleEnum  | None = None
     first_name: str | None = None
     last_name: str | None = None
