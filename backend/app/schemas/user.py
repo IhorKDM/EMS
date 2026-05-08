@@ -2,6 +2,8 @@ from datetime import date, datetime
 from pydantic import BaseModel, EmailStr
 from app.models.user import RoleEnum, TitleEnum
 
+from app.schemas.shared import PermissionSchema
+
 
 class AddressSchema(BaseModel):
     """ Address object in responses """
@@ -11,26 +13,12 @@ class AddressSchema(BaseModel):
     postal_code: str
     country: str
 
-class PermissionBriefResponse(BaseModel):
-    """ Permission flags embedded in position response """
-    can_add_user: bool = False
-    can_promote_user: bool = False
-    can_delete_user: bool = False
-    can_manage_positions: bool = False
-    can_manage_sections: bool = False
-    can_accept_requests: bool = False
-    can_manage_schedule: bool = False
-    can_view_payroll: bool = False
-    can_manage_payroll: bool = False
-    can_see_logs: bool = False
-    model_config = {"from_attributes": True}
-
 class PositionBriefResponse(BaseModel):
     """ Position summary embedded in UserResponse """
     id: int
     title: str
     rank: int
-    permissions: PermissionBriefResponse | None = None
+    permissions: PermissionSchema | None = None
     model_config = {"from_attributes": True}
 
 class UserResponse(BaseModel):
