@@ -46,7 +46,7 @@ class User(Base):
 
     # Role and assignment
     role: Mapped[RoleEnum] = mapped_column(Enum(RoleEnum), nullable=False)
-    business_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("businesses.id"), ondelete="SET NULL", nullable=True)
+    business_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("businesses.id", ondelete="SET NULL"), nullable=True)
     section_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("sections.id", ondelete="SET NULL"), nullable=True)
     position_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("positions.id", ondelete="SET NULL"), nullable=True)
 
@@ -65,7 +65,7 @@ class User(Base):
 
     @property
     def full_name(self) -> str:
-        return f"{self.title.value} {self.first_name} {self.last_name}
+        return f"{self.title.value} {self.first_name} {self.last_name}"
 
     @property
     def address(self) -> SimpleNamespace:

@@ -17,7 +17,7 @@ class Position(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(50), nullable=False)
     rank: Mapped[int] = mapped_column(Integer, nullable=False)
-    business_id: Mapped[int] = mapped_column(Integer, ForeignKey("businesses_id", ondelete="CASCADE"), nullable=False)
+    business_id: Mapped[int] = mapped_column(Integer, ForeignKey("businesses.id", ondelete="CASCADE"), nullable=False)
 
     default_pay_type: Mapped[PayTypeEnum] = mapped_column(Enum(PayTypeEnum), nullable=False)
     default_rate: Mapped[float] = mapped_column(Float, nullable=False)

@@ -1,5 +1,4 @@
 from datetime import datetime
-from tkinter.constants import CASCADE
 
 from sqlalchemy import DateTime, Integer, String, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
