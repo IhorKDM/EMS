@@ -4,6 +4,7 @@ from fastapi import FastAPI
 import app.models
 from app.config import get_settings
 from app.database import Base, engine
+from app.routers import auth
 
 settings = get_settings()
 
@@ -18,6 +19,8 @@ app = FastAPI(
     version=settings.app_version,
     lifespan=lifespan,
 )
+
+app.include_router(auth.router)
 
 @app.get("/health", tags=["health"])
 def health_check():
