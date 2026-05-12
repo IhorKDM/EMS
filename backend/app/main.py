@@ -5,13 +5,13 @@ from fastapi import FastAPI
 import app.models
 from app.config import get_settings
 from app.database import Base, engine
-from app.routers import auth, users, admin, business, positions, schedule
+from app.routers import auth, users, admin, business, positions, schedule, payroll
 
 settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Create all database tables on startup."""
+    """ Create all database tables on startup """
     Base.metadata.create_all(bind=engine)
     yield
 
@@ -27,6 +27,7 @@ app.include_router(admin.router)
 app.include_router(business.router)
 app.include_router(positions.router)
 app.include_router(schedule.router)
+app.include_router(payroll.router)
 
 @app.get("/health", tags=["health"])
 def health_check():
