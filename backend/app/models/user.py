@@ -1,5 +1,5 @@
 import enum
-from datetime import datetime
+from datetime import date, datetime
 from types import SimpleNamespace
 
 from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, String, func
@@ -27,9 +27,9 @@ class User(Base):
     # Personal information
     title: Mapped[TitleEnum] = mapped_column(Enum(TitleEnum), nullable=False)
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
-    email: Mapped[str] = mapped_column(String(100), nullable=False)
-    dob: Mapped[Date] = mapped_column(Date, nullable=False)
+    last_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    email: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
+    dob: Mapped[date] = mapped_column(Date, nullable=False)
 
     # Address information
     address_line1: Mapped[str] = mapped_column(String(100), nullable=False)
