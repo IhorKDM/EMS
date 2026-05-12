@@ -1,10 +1,11 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
+
 import app.models
 from app.config import get_settings
 from app.database import Base, engine
-from app.routers import auth, users, admin
+from app.routers import auth, users, admin, business
 
 settings = get_settings()
 
@@ -23,6 +24,7 @@ app = FastAPI(
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(admin.router)
+app.include_router(business.router)
 
 @app.get("/health", tags=["health"])
 def health_check():
