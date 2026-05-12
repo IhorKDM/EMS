@@ -10,8 +10,9 @@ class AddressSchema(BaseModel):
     line1: str
     line2: str | None = None
     city: str
-    postal_code: str
+    postcode: str
     country: str
+    model_config = {"from_attributes": True}
 
 class PositionBriefResponse(BaseModel):
     """ Position summary embedded in UserResponse """
@@ -51,7 +52,7 @@ class CreateUserBase(BaseModel):
     address_line1: str
     address_line2: str | None = None
     address_city: str
-    address_postal_code: str
+    address_postcode: str
     address_country: str
     business_id: int
     section_id: int | None = None
@@ -76,7 +77,7 @@ class UpdateUserRequest(BaseModel):
     address_line1: str | None = None
     address_line2: str | None = None
     address_city: str | None = None
-    address_postal_code: str | None = None
+    address_postcode: str | None = None
     address_country: str | None = None
 
 
