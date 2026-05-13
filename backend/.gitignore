@@ -23,4 +23,4 @@ pytest_cache/
 htmlcov/
 .mypy_cache/
 
-scripts/
+.DS_Store
