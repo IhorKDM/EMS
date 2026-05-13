@@ -5,7 +5,7 @@ from fastapi import FastAPI
 import app.models
 from app.config import get_settings
 from app.database import Base, engine
-from app.routers import auth, users, admin, business, positions, schedule, payroll, holidays
+from app.routers import auth, users, admin, business, positions, schedule, payroll, holidays, logs
 
 settings = get_settings()
 
@@ -29,6 +29,7 @@ app.include_router(positions.router)
 app.include_router(schedule.router)
 app.include_router(payroll.router)
 app.include_router(holidays.router)
+app.include_router(logs.router)
 
 @app.get("/health", tags=["health"])
 def health_check():
