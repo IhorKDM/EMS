@@ -81,8 +81,6 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-
-        <p className="text-center text-xs text-slate-400 mt-6">Employee Management System · v0.1.0</p>
       </div>
     </div>
   )
