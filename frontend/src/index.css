@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
+    --color-primary-50: #eef2ff;
+    --color-primary-100: #e0e7ff;
+    --color-primary-200: #c7d2fe;
+    --color-primary-300: #a5b4fc;
+    --color-primary-400: #818cf8;
+    --color-primary-500: #6366f1;
+    --color-primary-600: #4f46e5;
+    --color-primary-700: #4338ca;
+    --color-primary-800: #3730a3;
+    --color-primary-900: #312e81;
 }
 
 @layer base {
-  * { box-sizing: border-box; }
-  body { @apply bg-slate-50 text-slate-900 antialiased; }
+    * { box-sizing: border-box; }
+    body { @apply bg-slate-50 text-slate-900 antialiased; }
 }
 
 @layer components {
@@ -23,4 +23,9 @@
     .btn-secondary { @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:ring-slate-400; }
     .btn-danger { @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600 text-white hover:bg-red-700 focus:ring-red-500; }
     .card { @apply bg-white rounded-xl border border-slate-200 shadow-sm; }
+
+    .sidebar-link { @apply flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer; }
+    .sidebar-link.active { @apply bg-primary-50 text-primary-700 font-medium; }
+    .logo { filter: brightness(0) opacity(0.5); }
+    .logo-white { filter: brightness(0) invert(1) opacity(0.85); }
 }
