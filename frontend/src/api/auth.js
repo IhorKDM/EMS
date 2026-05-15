@@ -11,6 +11,10 @@ export async function getMe() {
 }
 
 export async function changePassword(data) {
-  const { data: res } = await client.post('/auth/change-password', data)
+  const { data: res } = await client.post('/auth/change-password', {
+    current_password: data.current_password,
+    new_password: data.new_password,
+    confirm_password: data.new_password,
+  })
   return res
 }
