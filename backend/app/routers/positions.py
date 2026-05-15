@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import require_admin
+from app.core.dependencies import require_admin, get_current_active_user
 from app.core.exceptions import NotFoundError
 from app.database import get_db
 from app.models.business import Business
@@ -27,7 +27,7 @@ def _get_position_or_404(db: Session, position_id: int) -> Position:
 def list_positions(
     business_id: int | None = Query(default=None),
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(get_current_active_user),
 ):
     """ List all positions. Pass ?business_id=1 to filter by business """
     query = db.query(Position)

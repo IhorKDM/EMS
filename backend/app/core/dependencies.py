@@ -58,3 +58,10 @@ def require_manager_permission(perm_name: str):
                 return user
         raise ForbiddenError()
     return _checker
+
+def require_admin_or_manager(user=Depends(get_current_active_user)):
+    """Allows admins and any manager (regardless of permissions)."""
+    from app.models.user import RoleEnum
+    if user.role in (RoleEnum.admin, RoleEnum.manager):
+        return user
+    raise ForbiddenError()

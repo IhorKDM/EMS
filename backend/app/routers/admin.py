@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.dependencies import require_admin
+from app.core.dependencies import require_admin, require_manager_permission, get_current_active_user
 from app.core.exceptions import AdminLimitError, ConflictError, ForbiddenError, NotFoundError
 from app.core.security import generate_temp_password, hash_password
 from app.database import get_db
@@ -13,6 +13,7 @@ from app.models.audit import AuditActionEnum
 from app.models.position import Position
 from app.models.user import RoleEnum, User
 from app.schemas.user import (
+    CreateEmployeeRequest,
     CreateManagerRequest,
     PromoteUserRequest,
     UpdateUserRequest,
@@ -39,19 +40,21 @@ def _get_user_or_404(db: Session, user_id: int) -> User:
 @router.get("/users", response_model=UserListResponse)
 def list_all_users(
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    current_user: User = Depends(get_current_active_user),
 ):
-    """ Return every user in the system """
+    if current_user.role != RoleEnum.admin:
+        perms = current_user.position.permissions if current_user.position else None
+        if not perms or not (perms.can_add_user or perms.can_delete_user):
+            raise ForbiddenError()
     users = db.query(User).all()
-    return UserListResponse(total=len(users), users=users)
-
+    return {"users": users, "total": len(users)}
 
 @router.post("/managers", response_model=UserResponse, status_code=201)
 async def create_manager(
     payload: CreateManagerRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_manager_permission("can_add_user")),
 ):
     """ Create a manager account with a temp password and send a welcome email """
     if db.query(User).filter(User.email == payload.email).first():
@@ -94,6 +97,59 @@ async def create_manager(
 
     if settings.debug:
         logger.warning("DEV — manager created  email=%s  temp_password=%s", user.email, temp_pwd)
+
+    background_tasks.add_task(send_welcome_email, user.email, user.full_name, temp_pwd)
+    return user
+
+
+@router.post("/employees", response_model=UserResponse, status_code=201)
+async def create_employee(
+    payload: CreateEmployeeRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_manager_permission("can_add_user")),
+):
+    """ Create an employee account with a temp password and send a welcome email """
+    if db.query(User).filter(User.email == payload.email).first():
+        raise ConflictError(f"Email '{payload.email}' is already registered.")
+
+    temp_pwd = generate_temp_password()
+    expires = datetime.now(timezone.utc) + timedelta(hours=settings.temp_password_ttl_hours)
+
+    user = User(
+        title=payload.title,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
+        email=payload.email,
+        dob=payload.dob,
+        address_line1=payload.address_line1,
+        address_line2=payload.address_line2,
+        address_city=payload.address_city,
+        address_postcode=payload.address_postcode,
+        address_country=payload.address_country,
+        hashed_password=hash_password(temp_pwd),
+        role=RoleEnum.employee,
+        business_id=payload.business_id,
+        section_id=payload.section_id,
+        position_id=payload.position_id,
+        is_first_login=True,
+        temp_password_expires_at=expires,
+    )
+    db.add(user)
+    db.flush()
+    log_action(
+        db,
+        AuditActionEnum.user_created,
+        actor=admin,
+        target=user,
+        business_id=user.business_id,
+        details="role=employee",
+    )
+    db.commit()
+    db.refresh(user)
+
+    if settings.debug:
+        logger.warning("DEV — employee created  email=%s  temp_password=%s", user.email, temp_pwd)
 
     background_tasks.add_task(send_welcome_email, user.email, user.full_name, temp_pwd)
     return user
