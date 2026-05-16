@@ -52,7 +52,7 @@ export default function CreateUserPage() {
     <div>
       <PageHeader title="Create User" backTo="/admin/users" />
 
-      <div className="max-w-2xl space-y-5">
+      <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Role selector */}
         <div className="card p-5">
