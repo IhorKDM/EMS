@@ -30,6 +30,7 @@ import BusinessFormPage from './pages/business/BusinessFormPage'
 import BusinessDetailPage from './pages/business/BusinessDetailPage'
 
 import PositionListPage from './pages/positions/PositionListPage'
+import PositionFormPage from './pages/positions/PositionFormPage'
 
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
@@ -76,7 +77,10 @@ export default function App() {
               <Route path="/business/new" element={<BusinessFormPage />} />
               <Route path="/business/:id" element={<BusinessDetailPage />} />
               <Route path="/business/:id/edit" element={<BusinessFormPage />} />
+
               <Route path="/positions" element={<PositionListPage />} />
+              <Route path="/positions/new" element={<PositionFormPage />} />
+              <Route path="/positions/:id/edit" element={<PositionFormPage />} />
             </Route>
 
           </Route>
