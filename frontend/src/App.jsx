@@ -22,6 +22,7 @@ import ProfilePage from './pages/profile/ProfilePage'
 import UserListPage from './pages/admin/UserListPage'
 import UserDetailPage from './pages/admin/UserDetailPage'
 import CreateUserPage from './pages/admin/CreateUserPage'
+import PromoteUserPage from './pages/admin/PromoteUserPage'
 
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
@@ -53,6 +54,10 @@ export default function App() {
 
             <Route element={<ProtectedRoute requiredPermission="can_add_user" />}>
               <Route path="/admin/users/new" element={<CreateUserPage />} />
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+              <Route path="/admin/users/:id/promote" element={<PromoteUserPage />} />
             </Route>
 
           </Route>
