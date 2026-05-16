@@ -32,6 +32,9 @@ import BusinessDetailPage from './pages/business/BusinessDetailPage'
 import PositionListPage from './pages/positions/PositionListPage'
 import PositionFormPage from './pages/positions/PositionFormPage'
 
+// Schedule
+import SchedulePage from './pages/schedule/SchedulePage'
+
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
   if (!accessToken || !user) return <Navigate to="/login" replace />
@@ -82,6 +85,8 @@ export default function App() {
               <Route path="/positions/new" element={<PositionFormPage />} />
               <Route path="/positions/:id/edit" element={<PositionFormPage />} />
             </Route>
+
+            <Route path="/schedule" element={<SchedulePage />} />
 
           </Route>
         </Route>
