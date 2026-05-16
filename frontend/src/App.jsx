@@ -15,6 +15,9 @@ import LandingPage from './pages/landing/LandingPage'
 // Dashboard
 import DashboardPage from './pages/dashboard/DashboardPage'
 
+// Profile
+import ProfilePage from './pages/profile/ProfilePage'
+
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
   if (!accessToken || !user) return <Navigate to="/login" replace />
@@ -32,6 +35,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Route>
 
