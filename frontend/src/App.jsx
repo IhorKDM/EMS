@@ -27,6 +27,7 @@ import PromoteUserPage from './pages/admin/PromoteUserPage'
 // Business
 import BusinessListPage from './pages/business/BusinessListPage'
 import BusinessFormPage from './pages/business/BusinessFormPage'
+import BusinessDetailPage from './pages/business/BusinessDetailPage'
 
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
@@ -71,6 +72,7 @@ export default function App() {
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/business" element={<BusinessListPage />} />
               <Route path="/business/new" element={<BusinessFormPage />} />
+              <Route path="/business/:id" element={<BusinessDetailPage />} />
               <Route path="/business/:id/edit" element={<BusinessFormPage />} />
             </Route>
 
