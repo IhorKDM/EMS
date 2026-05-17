@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import require_admin
+from app.core.dependencies import require_admin, get_current_active_user
 from app.core.exceptions import ConflictError, NotFoundError
 from app.database import get_db
 from app.models.business import Business
@@ -36,7 +36,7 @@ def _get_section_or_404(db: Session, section_id: int) -> Section:
 @router.get("", response_model=list[BusinessResponse])
 def list_businesses(
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(get_current_active_user),
 ):
     """ Return all businesses """
     return db.query(Business).all()
@@ -100,7 +100,7 @@ def delete_business(
 def list_sections(
     business_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(get_current_active_user),
 ):
     """ List all sections for a business """
     _get_business_or_404(db, business_id)
