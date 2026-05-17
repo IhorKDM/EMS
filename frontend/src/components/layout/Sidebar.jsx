@@ -97,6 +97,17 @@ export default function Sidebar() {
             </Section>
           )}
 
+          {isManager && (canDo(user, 'can_manage_positions') || canDo(user, 'can_manage_sections')) && (
+            <Section label="Organisation">
+              {canDo(user, 'can_manage_positions') && (
+                <NavItem to="/positions" icon={Briefcase} label="Positions" />
+              )}
+              {canDo(user, 'can_manage_sections') && user?.business_id && (
+                <NavItem to={`/business/${user.business_id}`} icon={Building2} label="My Business" />
+              )}
+            </Section>
+          )}
+
           {(isAdmin || isManager) && (
             <Section label="Management">
               {(isAdmin || canDo(user, 'can_manage_schedule')) && (

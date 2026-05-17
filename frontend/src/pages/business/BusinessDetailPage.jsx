@@ -8,6 +8,8 @@ import {
 } from '../../api/business'
 import { listPositions } from '../../api/positions'
 import { formatDate } from '../../lib/utils'
+import { useAuthStore } from '../../store/authStore'
+import { canDo } from '../../lib/permissions'
 import PageHeader from '../../components/shared/PageHeader'
 import StatusBadge from '../../components/shared/StatusBadge'
 import ConfirmDialog from '../../components/shared/ConfirmDialog'
@@ -17,6 +19,8 @@ export default function BusinessDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { user } = useAuthStore()
+  const isAdmin = user?.role === 'admin'
 
   const [newSection, setNewSection] = useState('')
   const [editingSection, setEditingSection] = useState(null)
@@ -40,7 +44,7 @@ export default function BusinessDetailPage() {
   })
 
   const addSection = useMutation({
-    mutationFn: () => createSection(id, { name: newSection }),
+    mutationFn: () => createSection(id, { name: newSection, business_id: Number(id) }),
     onSuccess: () => {
       toast.success('Section added')
       qc.invalidateQueries({ queryKey: ['sections', id] })
@@ -92,14 +96,14 @@ export default function BusinessDetailPage() {
       <PageHeader
         title={business?.name}
         backTo="/business"
-        actions={
+        actions={isAdmin ? (
           <button
             onClick={() => navigate(`/business/${id}/edit`)}
             className="btn-secondary"
           >
             <Pencil className="w-4 h-4" /> Edit
           </button>
-        }
+        ) : null}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -124,12 +128,14 @@ export default function BusinessDetailPage() {
             </div>
           </div>
 
-          <button
-            onClick={() => setConfirmDeleteBiz(true)}
-            className="btn-danger w-full justify-center"
-          >
-            <Trash2 className="w-4 h-4" /> Delete Business
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setConfirmDeleteBiz(true)}
+              className="btn-danger w-full justify-center"
+            >
+              <Trash2 className="w-4 h-4" /> Delete Business
+            </button>
+          )}
         </div>
 
         {/* Sections */}
@@ -210,19 +216,21 @@ export default function BusinessDetailPage() {
             <h3 className="text-sm font-semibold text-slate-700">
               Positions ({positions?.length ?? 0})
             </h3>
-            <button
-              onClick={() => navigate('/positions/new')}
-              className="text-xs text-primary-600 hover:underline flex items-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" /> Add
-            </button>
+            {canDo(user, 'can_manage_positions') && (
+              <button
+                onClick={() => navigate('/positions/new')}
+                className="text-xs text-primary-600 hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add
+              </button>
+            )}
           </div>
           <div className="space-y-2">
             {positions?.length ? positions.map(p => (
               <div
                 key={p.id}
-                onClick={() => navigate(`/positions/${p.id}/edit`)}
-                className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                onClick={() => canDo(user, 'can_manage_positions') && navigate(`/positions/${p.id}/edit`)}
+                className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${canDo(user, 'can_manage_positions') ? 'hover:bg-slate-50 cursor-pointer' : ''}`}
               >
                 <div>
                   <p className="text-sm font-medium text-slate-700">{p.title}</p>

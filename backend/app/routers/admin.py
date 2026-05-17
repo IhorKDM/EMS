@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.dependencies import require_admin, require_manager_permission, get_current_active_user
+from app.core.dependencies import require_admin, require_admin_or_manager, require_manager_permission, get_current_active_user
 from app.core.exceptions import AdminLimitError, ConflictError, ForbiddenError, NotFoundError
 from app.core.security import generate_temp_password, hash_password
 from app.database import get_db
@@ -37,6 +37,22 @@ def _get_user_or_404(db: Session, user_id: int) -> User:
     return user
 
 
+def _assert_outranks(actor: User, target_position: "Position | None") -> None:
+    """
+    Enforce rank hierarchy for non-admins.
+    The actor must have a strictly higher rank than the target position.
+    Admins always bypass this check.
+    """
+    if actor.role == RoleEnum.admin:
+        return
+    my_rank     = actor.position.rank if actor.position else None
+    target_rank = target_position.rank if target_position else None
+    if my_rank is None or target_rank is None or target_rank >= my_rank:
+        raise ForbiddenError(
+            "You can only manage users whose position rank is strictly lower than your own."
+        )
+
+
 @router.get("/users", response_model=UserListResponse)
 def list_all_users(
     db: Session = Depends(get_db),
@@ -59,6 +75,11 @@ async def create_manager(
     """ Create a manager account with a temp password and send a welcome email """
     if db.query(User).filter(User.email == payload.email).first():
         raise ConflictError(f"Email '{payload.email}' is already registered.")
+
+    target_position = db.get(Position, payload.position_id)
+    if target_position is None:
+        raise NotFoundError("Position")
+    _assert_outranks(admin, target_position)
 
     temp_pwd = generate_temp_password()
     expires = datetime.now(timezone.utc) + timedelta(hours=settings.temp_password_ttl_hours)
@@ -113,6 +134,11 @@ async def create_employee(
     if db.query(User).filter(User.email == payload.email).first():
         raise ConflictError(f"Email '{payload.email}' is already registered.")
 
+    target_position = db.get(Position, payload.position_id)
+    if target_position is None:
+        raise NotFoundError("Position")
+    _assert_outranks(admin, target_position)
+
     temp_pwd = generate_temp_password()
     expires = datetime.now(timezone.utc) + timedelta(hours=settings.temp_password_ttl_hours)
 
@@ -159,9 +185,9 @@ async def create_employee(
 def get_user(
     user_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_admin_or_manager),
 ):
-    """ Fetch a single user by id """
+    """ Fetch a single user by id — accessible to all admins and managers """
     return _get_user_or_404(db, user_id)
 
 
@@ -170,7 +196,7 @@ def update_user(
     user_id: int,
     payload: UpdateUserRequest,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    current_user: User = Depends(require_manager_permission("can_add_user")),
 ):
     """ Partially update user fields. Only supplied fields are changed """
     user = _get_user_or_404(db, user_id)
@@ -185,16 +211,17 @@ def update_user(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    current_user: User = Depends(require_manager_permission("can_delete_user")),
 ):
-    """ Delete a user. An admin cannot delete their own account """
+    """ Delete a user. A user cannot delete their own account or anyone at/above their rank """
     user = _get_user_or_404(db, user_id)
-    if user.id == admin.id:
+    if user.id == current_user.id:
         raise ForbiddenError("You cannot delete your own account.")
+    _assert_outranks(current_user, user.position)
     log_action(
         db,
         AuditActionEnum.user_deleted,
-        actor=admin,
+        actor=current_user,
         target=user,
         business_id=user.business_id,
     )
@@ -208,9 +235,9 @@ async def promote_user(
     payload: PromoteUserRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
+    admin: User = Depends(require_manager_permission("can_add_user")),
 ):
-    """ Change a user's role and position. Enforces the max_admins limit """
+    """ Change a user's role and position. Enforces the max_admins limit and rank hierarchy """
     user = _get_user_or_404(db, user_id)
 
     if payload.new_role == RoleEnum.admin:
@@ -221,6 +248,11 @@ async def promote_user(
     position = db.get(Position, payload.position_id)
     if position is None:
         raise NotFoundError("Position")
+
+    # Cannot promote someone to a position at or above your own rank
+    _assert_outranks(admin, position)
+    # Cannot promote someone who is already at or above your rank
+    _assert_outranks(admin, user.position)
 
     user.role = payload.new_role
     user.position_id = payload.position_id

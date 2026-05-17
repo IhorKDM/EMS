@@ -56,8 +56,8 @@ export default function PositionFormPage() {
         rank:                    Number(data.rank),
         business_id:             Number(data.business_id),
         default_pay_type:        payType,
-        default_rate:            data.default_rate ? Number(data.default_rate) : undefined,
-        default_contract_amount: data.default_contract_amount ? Number(data.default_contract_amount) : undefined,
+        default_rate:            data.default_rate ? Number(data.default_rate) : 0,
+        default_contract_amount: data.default_contract_amount ? Number(data.default_contract_amount) : 0,
         permissions,
       }
       return isEdit ? updatePosition(id, payload) : createPosition(payload)

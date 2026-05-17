@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { getApiError } from '../../lib/utils'
@@ -8,14 +8,16 @@ import { login, getMe } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
 
 export default function LoginPage() {
-  const { register, handleSubmit, formState: { errors } } = useForm()
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm()
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
 
   const onSubmit = async ({ email, password }) => {
     setLoading(true)
+    setAuthError('')
     try {
       const tokens = await login(email, password)
       setAuth(null, tokens.access_token, tokens.refresh_token)
@@ -28,7 +30,9 @@ export default function LoginPage() {
         navigate('/dashboard')
       }
     } catch (err) {
-      toast.error(getApiError(err, 'Invalid email or password'))
+      const msg = getApiError(err, 'Invalid email or password')
+      setAuthError(msg)
+      setValue('password', '')
     } finally {
       setLoading(false)
     }
@@ -45,10 +49,18 @@ export default function LoginPage() {
 
         <div className="card p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+            {authError && (
+              <div className="flex items-center gap-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <p className="text-sm">{authError}</p>
+              </div>
+            )}
+
             <div>
               <label className="label">Email Address</label>
               <input
-                className={`input ${errors.email ? 'border-red-400' : ''}`}
+                className={`input ${authError || errors.email ? 'border-red-400 focus:ring-red-200' : ''}`}
                 type="email"
                 placeholder="you@company.com"
                 {...register('email', { required: 'Email is required' })}
@@ -60,7 +72,7 @@ export default function LoginPage() {
               <label className="label">Password</label>
               <div className="relative">
                 <input
-                  className={`input pr-10 ${errors.password ? 'border-red-400' : ''}`}
+                  className={`input pr-10 ${authError || errors.password ? 'border-red-400 focus:ring-red-200' : ''}`}
                   type={showPw ? 'text' : 'password'}
                   placeholder="••••••••"
                   {...register('password', { required: 'Password is required' })}

@@ -66,9 +66,14 @@ def set_tax_config(
 def get_tax_config(
     business_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    current_user: User = Depends(get_current_active_user),
 ):
-    """ Get the tax config for a business """
+    """ Get the tax config for a business — accessible to admins and payroll managers """
+    from app.models.user import RoleEnum
+    if current_user.role != RoleEnum.admin:
+        perms = current_user.position.permissions if current_user.position else None
+        if not perms or not (perms.can_view_payroll or perms.can_manage_payroll):
+            raise ForbiddenError()
     cfg = db.query(BusinessTaxConfig).filter(
         BusinessTaxConfig.business_id == business_id
     ).first()

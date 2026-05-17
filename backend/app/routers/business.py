@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import require_admin, get_current_active_user
+from app.core.dependencies import require_admin, require_manager_permission, get_current_active_user
 from app.core.exceptions import ConflictError, NotFoundError
 from app.database import get_db
 from app.models.business import Business
@@ -62,7 +62,7 @@ def create_business(
 def get_business(
     business_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(get_current_active_user),
 ):
     """ Fetch a single business by id """
     return _get_business_or_404(db, business_id)
@@ -112,7 +112,7 @@ def create_section(
     business_id: int,
     payload: CreateSectionRequest,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_manager_permission("can_manage_sections")),
 ):
     """ Create a section inside a business """
     _get_business_or_404(db, business_id)
@@ -129,7 +129,7 @@ def update_section(
     section_id: int,
     payload: UpdateSectionRequest,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_manager_permission("can_manage_sections")),
 ):
     """ Update a section name """
     _get_business_or_404(db, business_id)
@@ -148,7 +148,7 @@ def delete_section(
     business_id: int,
     section_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_manager_permission("can_manage_sections")),
 ):
     """ Delete a section """
     _get_business_or_404(db, business_id)

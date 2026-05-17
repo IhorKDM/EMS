@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import require_admin, get_current_active_user
+from app.core.dependencies import require_admin, require_manager_permission, get_current_active_user
 from app.core.exceptions import NotFoundError
 from app.database import get_db
 from app.models.business import Business
@@ -40,7 +40,7 @@ def list_positions(
 def create_position(
     payload: CreatePositionRequest,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_manager_permission("can_manage_positions")),
 ):
     """ Create a position and its permission record together """
     if db.get(Business, payload.business_id) is None:
@@ -71,7 +71,7 @@ def create_position(
 def get_position(
     position_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_manager_permission("can_manage_positions")),
 ):
     """ Fetch a single position by id """
     return _get_position_or_404(db, position_id)
@@ -82,7 +82,7 @@ def update_position(
     position_id: int,
     payload: UpdatePositionRequest,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_manager_permission("can_manage_positions")),
 ):
     """ Update position fields. If permissions are provided, all flags are replaced """
     position = _get_position_or_404(db, position_id)
@@ -109,7 +109,7 @@ def update_position(
 def delete_position(
     position_id: int,
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _user: User = Depends(require_manager_permission("can_manage_positions")),
 ):
     """ Delete a position. Its Permission record is cascade-deleted automatically """
     position = _get_position_or_404(db, position_id)
