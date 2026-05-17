@@ -23,14 +23,21 @@ export default function TaxConfigPage() {
 
   const { data: config, isLoading } = useQuery({
     queryKey: ['taxConfig', selectedBusinessId],
-    queryFn: () => getTaxConfig(selectedBusinessId),
+    queryFn: async () => {
+      try {
+        return await getTaxConfig(selectedBusinessId)
+      } catch (err) {
+        if (err?.response?.status === 404) return null
+        throw err
+      }
+    },
     enabled: Boolean(selectedBusinessId),
   })
 
   useEffect(() => {
     if (config) {
       reset({
-        income_tax_rate: config.income_tax_rate,
+        income_tax_rate: config.income_tax,
         ni_rate: config.ni_rate,
       })
     } else {
@@ -40,8 +47,9 @@ export default function TaxConfigPage() {
 
   const mutation = useMutation({
     mutationFn: (data) => saveTaxConfig(selectedBusinessId, {
-      income_tax_rate: parseFloat(data.income_tax_rate),
+      income_tax: parseFloat(data.income_tax_rate),
       ni_rate: parseFloat(data.ni_rate),
+      tax_threshold: 0,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['taxConfig', selectedBusinessId] })
@@ -88,7 +96,7 @@ export default function TaxConfigPage() {
 
           {config && (
             <div className="mb-5 p-3 bg-slate-50 rounded-lg text-xs text-slate-500 space-y-1">
-              <p>Current: Income Tax {formatPercent(config.income_tax_rate)} · NI {formatPercent(config.ni_rate)}</p>
+              <p>Current: Income Tax {formatPercent(config.income_tax)} · NI {formatPercent(config.ni_rate)}</p>
             </div>
           )}
 

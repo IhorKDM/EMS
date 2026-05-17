@@ -35,6 +35,7 @@ class PayslipResponse(BaseModel):
     """ Payslip object returned by the API """
     id: int
     employee_id: int
+    employee_name: str | None = None
     business_id: int
     period_label: str
     gross: float

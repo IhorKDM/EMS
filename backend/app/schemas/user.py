@@ -14,6 +14,12 @@ class AddressSchema(BaseModel):
     country: str
     model_config = {"from_attributes": True}
 
+class BusinessBriefResponse(BaseModel):
+    """ Business summary embedded in UserResponse """
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
 class PositionBriefResponse(BaseModel):
     """ Position summary embedded in UserResponse """
     id: int
@@ -36,6 +42,7 @@ class UserResponse(BaseModel):
     address: AddressSchema | None = None
     role: RoleEnum
     business_id: int | None = None
+    business: BusinessBriefResponse | None = None
     section_id: int | None = None
     position_id: int | None = None
     position: PositionBriefResponse | None = None
@@ -82,6 +89,10 @@ class UpdateUserRequest(BaseModel):
     address_city: str | None = None
     address_postcode: str | None = None
     address_country: str | None = None
+    # Work assignment – allows admin to reassign a user to a different business/position/section
+    business_id: int | None = None
+    position_id: int | None = None
+    section_id: int | None = None
 
 
 class PromoteUserRequest(BaseModel):

@@ -27,5 +27,9 @@ class Payslip(Base):
 
     employee: Mapped["User"] = relationship("User", back_populates="payslips")
 
+    @property
+    def employee_name(self) -> str | None:
+        return self.employee.full_name if self.employee else None
+
     def __repr__(self) -> str:
         return f"<Payslip id={self.id} employee_id={self.employee_id} period={self.period_label}>"

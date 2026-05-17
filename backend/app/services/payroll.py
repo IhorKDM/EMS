@@ -3,6 +3,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
+from app.models.pay_config import PayConfig
 from app.models.payslip import Payslip
 from app.models.position import PayTypeEnum
 from app.models.shift import Shift
@@ -27,10 +28,21 @@ def generate_payslip(
     period_end: date | None = None,
     notes: str | None = None,
 ) -> Payslip:
-    employee = db.get(User, employee_id)
-    if not employee or not employee.position:
-        raise NotFoundError("Position (employee has no position assigned)")
-    position = employee.position
+    # 1. Try PayConfig (per-employee override) first
+    pay_config = db.query(PayConfig).filter(PayConfig.employee_id == employee_id).first()
+
+    if pay_config is not None:
+        pay_type = pay_config.pay_type
+        rate = pay_config.rate
+        contract_amount = pay_config.contract_amount
+    else:
+        # 2. Fall back to position defaults
+        employee = db.get(User, employee_id)
+        if employee is None or employee.position is None:
+            raise NotFoundError("Pay configuration")
+        pay_type = employee.position.default_pay_type
+        rate = employee.position.default_rate
+        contract_amount = employee.position.default_contract_amount
 
     tax_cfg = db.query(BusinessTaxConfig).filter(
         BusinessTaxConfig.business_id == business_id
@@ -40,8 +52,8 @@ def generate_payslip(
 
     breakdown = []
 
-    if position.default_pay_type == PayTypeEnum.contract:
-        gross = position.default_contract_amount or position.default_rate
+    if pay_type == PayTypeEnum.contract:
+        gross = contract_amount or rate
         breakdown = [{"label": "Contract", "amount": gross}]
     elif period_start and period_end:
         shifts = db.query(Shift).filter(
@@ -49,22 +61,22 @@ def generate_payslip(
             Shift.work_date >= period_start,
             Shift.work_date <= period_end,
         ).all()
-        if position.default_pay_type == PayTypeEnum.hourly:
+        if pay_type == PayTypeEnum.hourly:
             total_hours = 0.0
             for s in shifts:
                 sh, sm = map(int, s.start_time.split(':'))
                 eh, em = map(int, s.end_time.split(':'))
                 hours = round((eh * 60 + em - sh * 60 - sm) / 60, 2)
-                amount = round(position.default_rate * hours, 2)
-                breakdown.append({"label": f"{s.work_date} · {hours} hrs @ £{position.default_rate}", "amount": amount})
+                amount = round(rate * hours, 2)
+                breakdown.append({"label": f"{s.work_date} · {hours} hrs @ £{rate}", "amount": amount})
                 total_hours += hours
-            gross = round(position.default_rate * total_hours, 2)
+            gross = round(rate * total_hours, 2)
         else:
             for s in shifts:
-                breakdown.append({"label": str(s.work_date), "amount": position.default_rate})
-            gross = round(position.default_rate * len(shifts), 2)
+                breakdown.append({"label": str(s.work_date), "amount": rate})
+            gross = round(rate * len(shifts), 2)
     else:
-        gross = round(position.default_rate * (160 if position.default_pay_type == PayTypeEnum.hourly else 20), 2)
+        gross = round(rate * (160 if pay_type == PayTypeEnum.hourly else 20), 2)
         breakdown = [{"label": "Standard period", "amount": gross}]
 
     deductions = calculate_net(gross, tax_cfg.income_tax, tax_cfg.ni_rate, tax_cfg.tax_threshold)

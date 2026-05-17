@@ -55,13 +55,11 @@ export default function PayslipListPage() {
                   className="hover:bg-slate-50 cursor-pointer transition-colors"
                 >
                   {!isEmployee && (
-                    <td className="px-4 py-3 font-medium text-slate-800">
-                      {p.employee?.first_name} {p.employee?.last_name}
-                    </td>
+                    <td className="px-4 py-3 text-slate-700">{p.employee_name ?? `#${p.employee_id}`}</td>
                   )}
                   <td className="px-4 py-3 text-slate-700">{p.period_label}</td>
-                  <td className="px-4 py-3 text-slate-700">{formatCurrency(p.gross_pay)}</td>
-                  <td className="px-4 py-3 font-medium text-green-700">{formatCurrency(p.net_pay)}</td>
+                  <td className="px-4 py-3 text-slate-700">{formatCurrency(p.gross)}</td>
+                  <td className="px-4 py-3 font-medium text-green-700">{formatCurrency(p.net)}</td>
                   <td className="px-4 py-3 text-slate-400">{formatDate(p.created_at)}</td>
                 </tr>
               ))}
