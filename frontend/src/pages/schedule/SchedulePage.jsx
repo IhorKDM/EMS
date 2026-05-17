@@ -50,10 +50,13 @@ export default function SchedulePage() {
   const weekStart = weekDates[0].toISOString().split('T')[0]
   const weekEnd = weekDates[6].toISOString().split('T')[0]
 
-  const { data: shifts } = useQuery({
-    queryKey: ['shifts', weekStart, weekEnd],
-    queryFn: () => listShifts({ start_date: weekStart, end_date: weekEnd }),
+  const { data: allShifts } = useQuery({
+    queryKey: ['shifts'],
+    queryFn: () => listShifts(),
   })
+
+  // Filter client-side to current week
+  const shifts = allShifts?.filter(s => s.work_date >= weekStart && s.work_date <= weekEnd)
 
   const { data: usersData } = useQuery({
     queryKey: ['users'],
@@ -70,6 +73,10 @@ export default function SchedulePage() {
     },
     onError: () => toast.error('Failed to delete shift'),
   })
+
+  // Build employee lookup map
+  const users = usersData?.users ?? usersData ?? []
+  const userMap = Object.fromEntries(users.map(u => [u.id, u]))
 
   // Build employee color map
   const employeeIds = [...new Set(shifts?.map(s => s.employee_id) ?? [])]
@@ -164,7 +171,7 @@ export default function SchedulePage() {
                       onClick={() => (canManage || user?.role === 'admin') && navigate(`/schedule/shifts/${s.id}/edit`)}
                     >
                       <p className="font-medium truncate">
-                        {isEmployee ? `${s.start_time}–${s.end_time}` : `${s.employee?.first_name} ${s.employee?.last_name?.[0]}.`}
+                        {isEmployee ? `${s.start_time}–${s.end_time}` : `${userMap[s.employee_id]?.first_name ?? ''} ${userMap[s.employee_id]?.last_name?.[0] ?? ''}.`}
                       </p>
                       <p className="opacity-70">{s.start_time}–{s.end_time}</p>
                     </div>
@@ -189,7 +196,7 @@ export default function SchedulePage() {
                   {!isEmployee && (
                     <div className="flex-1">
                       <p className="text-sm text-slate-700">
-                        {s.employee?.first_name} {s.employee?.last_name}
+                        {userMap[s.employee_id]?.first_name} {userMap[s.employee_id]?.last_name}
                       </p>
                     </div>
                   )}

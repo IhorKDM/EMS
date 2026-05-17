@@ -1,16 +1,18 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Loader2, ArrowUpCircle, Trash2, Mail, Calendar, Building2, Briefcase } from 'lucide-react'
-import { getUser, deleteUser } from '../../api/admin'
+import { Loader2, ArrowUpCircle, Trash2, Mail, Calendar, Building2, Briefcase, Pencil, Check, X } from 'lucide-react'
+import { getUser, deleteUser, updateUser } from '../../api/admin'
+import { listBusinesses, listSections } from '../../api/business'
+import { listPositions } from '../../api/positions'
 import { useAuthStore } from '../../store/authStore'
 import { canDo } from '../../lib/permissions'
-import { formatDate, getInitials } from '../../lib/utils'
+import { formatDate, getInitials, getApiError } from '../../lib/utils'
 import PageHeader from '../../components/shared/PageHeader'
 import StatusBadge from '../../components/shared/StatusBadge'
 import PermissionToggles from '../../components/shared/PermissionToggles'
 import ConfirmDialog from '../../components/shared/ConfirmDialog'
 import toast from 'react-hot-toast'
-import { useState } from 'react'
 
 function InfoRow({ label, value }) {
   return (
@@ -27,10 +29,32 @@ export default function UserDetailPage() {
   const { user: me } = useAuthStore()
   const qc = useQueryClient()
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [editingAssignment, setEditingAssignment] = useState(false)
+  const [assignBiz, setAssignBiz]   = useState('')
+  const [assignPos, setAssignPos]   = useState('')
+  const [assignSec, setAssignSec]   = useState('')
 
   const { data: u, isLoading } = useQuery({
     queryKey: ['user', id],
     queryFn: () => getUser(id),
+  })
+
+  const { data: businesses } = useQuery({
+    queryKey: ['businesses'],
+    queryFn: listBusinesses,
+    enabled: editingAssignment,
+  })
+
+  const { data: positions } = useQuery({
+    queryKey: ['positions', assignBiz],
+    queryFn: () => listPositions(assignBiz || undefined),
+    enabled: editingAssignment && !!assignBiz,
+  })
+
+  const { data: sections } = useQuery({
+    queryKey: ['sections', assignBiz],
+    queryFn: () => listSections(assignBiz),
+    enabled: editingAssignment && !!assignBiz,
   })
 
   const deleteMutation = useMutation({
@@ -43,6 +67,36 @@ export default function UserDetailPage() {
     onError: () => toast.error('Failed to delete user'),
   })
 
+  const assignMutation = useMutation({
+    mutationFn: () => {
+      const payload = {}
+      if (assignBiz) payload.business_id = Number(assignBiz)
+      if (assignPos) payload.position_id = Number(assignPos)
+      if (assignSec) payload.section_id  = Number(assignSec)
+      return updateUser(id, payload)
+    },
+    onSuccess: () => {
+      toast.success('Work assignment updated')
+      qc.invalidateQueries({ queryKey: ['user', id] })
+      setEditingAssignment(false)
+    },
+    onError: (err) => toast.error(getApiError(err, 'Failed to update assignment')),
+  })
+
+  const startEdit = () => {
+    setAssignBiz(String(u.business_id ?? ''))
+    setAssignPos(String(u.position_id ?? ''))
+    setAssignSec(String(u.section_id ?? ''))
+    setEditingAssignment(true)
+  }
+
+  const cancelEdit = () => {
+    setEditingAssignment(false)
+    setAssignBiz('')
+    setAssignPos('')
+    setAssignSec('')
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -54,8 +108,11 @@ export default function UserDetailPage() {
   if (!u) return null
 
   const isAdmin = me?.role === 'admin'
+  const myRank  = isAdmin ? Infinity : (me?.position?.rank ?? null)
   const canDelete = canDo(me, 'can_delete_user') && me?.id !== u.id
-  const canPromote = isAdmin && u.role !== 'admin'
+                    && (myRank === null || !u.position || u.position.rank < myRank)
+  const canPromote = canDo(me, 'can_add_user') && u.role !== 'admin'
+                     && (myRank === null || !u.position || u.position.rank < myRank)
 
   return (
     <div>
@@ -129,7 +186,7 @@ export default function UserDetailPage() {
             <h3 className="text-sm font-semibold text-slate-700 mb-4">Personal Information</h3>
             <div className="space-y-4">
               <InfoRow label="Title" value={u.title} />
-              <InfoRow label="Date of Birth" value={formatDate(u.date_of_birth)} />
+              <InfoRow label="Date of Birth" value={formatDate(u.dob)} />
               <InfoRow label="First Login" value={u.is_first_login ? 'Yes — password not set' : 'No'} />
             </div>
           </div>
@@ -137,7 +194,7 @@ export default function UserDetailPage() {
           <div className="card p-5">
             <h3 className="text-sm font-semibold text-slate-700 mb-4">Address</h3>
             <p className="text-sm text-slate-700">
-              {[u.address_line1, u.address_line2, u.city, u.postcode, u.country].filter(Boolean).join(', ') || '—'}
+              {[u.address?.line1, u.address?.line2, u.address?.city, u.address?.postcode, u.address?.country].filter(Boolean).join(', ') || '—'}
             </p>
           </div>
         </div>
@@ -145,12 +202,92 @@ export default function UserDetailPage() {
         {/* Work + Permissions */}
         <div className="space-y-5">
           <div className="card p-5">
-            <h3 className="text-sm font-semibold text-slate-700 mb-4">Work Assignment</h3>
-            <div className="space-y-4">
-              <InfoRow label="Business" value={u.business?.name} />
-              <InfoRow label="Position" value={u.position?.title} />
-              <InfoRow label="Rank" value={u.position?.rank} />
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-700">Work Assignment</h3>
+              {isAdmin && !editingAssignment && (
+                <button
+                  onClick={startEdit}
+                  className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  <Pencil className="w-3.5 h-3.5" /> Edit
+                </button>
+              )}
             </div>
+
+            {editingAssignment ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="label">Business</label>
+                  <select
+                    className="input"
+                    value={assignBiz}
+                    onChange={e => { setAssignBiz(e.target.value); setAssignPos(''); setAssignSec('') }}
+                  >
+                    <option value="">Select business…</option>
+                    {businesses?.map(b => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="label">Position</label>
+                  <select
+                    className="input"
+                    value={assignPos}
+                    onChange={e => setAssignPos(e.target.value)}
+                    disabled={!assignBiz}
+                  >
+                    <option value="">Select position…</option>
+                    {positions
+                      ?.filter(p => myRank === null || p.rank < myRank)
+                      .map(p => (
+                        <option key={p.id} value={p.id}>{p.title} (Rank {p.rank})</option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="label">Section (optional)</label>
+                  <select
+                    className="input"
+                    value={assignSec}
+                    onChange={e => setAssignSec(e.target.value)}
+                    disabled={!assignBiz}
+                  >
+                    <option value="">None</option>
+                    {sections?.map(s => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => assignMutation.mutate()}
+                    disabled={assignMutation.isPending || !assignBiz}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 text-white text-xs font-medium hover:bg-primary-700 disabled:opacity-50"
+                  >
+                    {assignMutation.isPending
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <Check className="w-3.5 h-3.5" />}
+                    Save
+                  </button>
+                  <button
+                    onClick={cancelEdit}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-medium hover:bg-slate-200"
+                  >
+                    <X className="w-3.5 h-3.5" /> Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <InfoRow label="Business" value={u.business?.name} />
+                <InfoRow label="Position" value={u.position?.title} />
+                <InfoRow label="Rank" value={u.position?.rank} />
+              </div>
+            )}
           </div>
 
           {u.role === 'manager' && u.position?.permissions && (

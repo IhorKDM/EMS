@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { createShift, updateShift, getShift } from '../../api/schedule'
 import { listUsers } from '../../api/admin'
+import { listBusinesses } from '../../api/business'
 import { getApiError } from '../../lib/utils'
 import PageHeader from '../../components/shared/PageHeader'
 import toast from 'react-hot-toast'
@@ -15,6 +16,8 @@ export default function ShiftFormPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
 
+  const [selectedBiz, setSelectedBiz] = useState('')
+
   const { register, handleSubmit, reset, formState: { errors } } = useForm()
 
   const { data: shift, isLoading: loadingShift } = useQuery({
@@ -23,27 +26,48 @@ export default function ShiftFormPage() {
     enabled: isEdit,
   })
 
+  const { data: businesses } = useQuery({
+    queryKey: ['businesses'],
+    queryFn: listBusinesses,
+  })
+
   const { data: usersData } = useQuery({
     queryKey: ['users', { limit: 200 }],
     queryFn: () => listUsers({ limit: 200 }),
   })
 
-  const employees = usersData?.users ?? []
+  const allEmployees = usersData?.users ?? usersData ?? []
+  // Filter employees by selected business so the list is relevant
+  const employees = selectedBiz
+    ? allEmployees.filter(u => String(u.business_id) === String(selectedBiz))
+    : allEmployees
 
   useEffect(() => {
     if (shift) {
+      if (shift.business_id) setSelectedBiz(String(shift.business_id))
       reset({
+        business_id: shift.business_id,
         employee_id: shift.employee_id,
-        work_date: shift.work_date,
-        start_time: shift.start_time?.slice(0, 5),
-        end_time: shift.end_time?.slice(0, 5),
-        notes: shift.notes ?? '',
+        work_date:   shift.work_date,
+        start_time:  shift.start_time?.slice(0, 5),
+        end_time:    shift.end_time?.slice(0, 5),
+        notes:       shift.notes ?? '',
       })
     }
   }, [shift, reset])
 
   const mutation = useMutation({
-    mutationFn: (data) => isEdit ? updateShift(id, data) : createShift(data),
+    mutationFn: (data) => {
+      const payload = {
+        employee_id: Number(data.employee_id),
+        business_id: Number(data.business_id),
+        work_date:   data.work_date,
+        start_time:  data.start_time,
+        end_time:    data.end_time,
+        notes:       data.notes || undefined,
+      }
+      return isEdit ? updateShift(id, payload) : createShift(payload)
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['shifts'] })
       toast.success(isEdit ? 'Shift updated' : 'Shift created')
@@ -69,6 +93,24 @@ export default function ShiftFormPage() {
 
       <div className="card p-6 max-w-lg">
         <form onSubmit={handleSubmit(d => mutation.mutate(d))} className="space-y-4">
+
+          <div>
+            <label className="label">Business</label>
+            <select
+              className="input"
+              {...register('business_id', {
+                required: 'Required',
+                onChange: e => setSelectedBiz(e.target.value),
+              })}
+            >
+              <option value="">Select business…</option>
+              {businesses?.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+            {errors.business_id && <p className="form-error">{errors.business_id.message}</p>}
+          </div>
+
           <div>
             <label className="label">Employee</label>
             <select

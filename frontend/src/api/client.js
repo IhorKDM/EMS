@@ -21,7 +21,7 @@ client.interceptors.response.use(
   (error) => {
     const status = error?.response?.status
 
-    if (status === 401) {
+    if (status === 401 && window.location.pathname !== '/login') {
       localStorage.removeItem('ems-auth')
       window.location.href = '/login'
       toast.error('Session expired, please sign in again')

@@ -55,7 +55,17 @@ export default function ProfilePage() {
   const { register: regPw, handleSubmit: handlePw, reset: resetPw, formState: { errors: pwErrors } } = useForm()
 
   const updateMutation = useMutation({
-    mutationFn: updateMyProfile,
+    mutationFn: (data) => updateMyProfile({
+      title:           data.title || undefined,
+      first_name:      data.first_name || undefined,
+      last_name:       data.last_name || undefined,
+      dob:             data.dob || undefined,
+      address_line1:   data.address_line1 || undefined,
+      address_line2:   data.address_line2 || undefined,
+      address_city:    data.address_city || undefined,
+      address_postcode: data.address_postcode || undefined,
+      address_country: data.address_country || undefined,
+    }),
     onSuccess: (data) => {
       setUser(data)
       qc.invalidateQueries({ queryKey: ['myProfile'] })
@@ -81,15 +91,15 @@ export default function ProfilePage() {
 
   const handleEdit = () => {
     reset({
-      title:         profile?.title ?? '',
-      first_name:    profile?.first_name ?? '',
-      last_name:     profile?.last_name ?? '',
-      date_of_birth: profile?.date_of_birth ?? '',
-      address_line1: profile?.address_line1 ?? '',
-      address_line2: profile?.address_line2 ?? '',
-      city:          profile?.city ?? '',
-      postcode:      profile?.postcode ?? '',
-      country:       profile?.country ?? '',
+      title:            profile?.title ?? '',
+      first_name:       profile?.first_name ?? '',
+      last_name:        profile?.last_name ?? '',
+      dob:              profile?.dob ?? '',
+      address_line1:    profile?.address?.line1 ?? '',
+      address_line2:    profile?.address?.line2 ?? '',
+      address_city:     profile?.address?.city ?? '',
+      address_postcode: profile?.address?.postcode ?? '',
+      address_country:  profile?.address?.country ?? '',
     })
     setEditing(true)
   }
@@ -144,7 +154,7 @@ export default function ProfilePage() {
               <InfoRow label="Title" value={p?.title} />
               <InfoRow label="First Name" value={p?.first_name} />
               <InfoRow label="Last Name" value={p?.last_name} />
-              <InfoRow label="Date of Birth" value={formatDate(p?.date_of_birth)} />
+              <InfoRow label="Date of Birth" value={formatDate(p?.dob)} />
               <InfoRow label="Member Since" value={formatDate(p?.created_at)} />
             </div>
           </SectionCard>
@@ -152,11 +162,11 @@ export default function ProfilePage() {
           {/* Address */}
           <SectionCard icon={MapPin} title="Address" color="orange">
             <div className="space-y-4">
-              <InfoRow label="Address Line 1" value={p?.address_line1} />
-              <InfoRow label="Address Line 2" value={p?.address_line2} />
-              <InfoRow label="City" value={p?.city} />
-              <InfoRow label="Postcode" value={p?.postcode} />
-              <InfoRow label="Country" value={p?.country} />
+              <InfoRow label="Address Line 1" value={p?.address?.line1} />
+              <InfoRow label="Address Line 2" value={p?.address?.line2} />
+              <InfoRow label="City" value={p?.address?.city} />
+              <InfoRow label="Postcode" value={p?.address?.postcode} />
+              <InfoRow label="Country" value={p?.address?.country} />
             </div>
           </SectionCard>
 
@@ -228,7 +238,7 @@ export default function ProfilePage() {
 
             <div>
               <label className="label">Date of Birth</label>
-              <input type="date" className="input max-w-xs" {...register('date_of_birth')} />
+              <input type="date" className="input max-w-xs" {...register('dob')} />
             </div>
 
             <hr className="border-slate-100" />
@@ -245,15 +255,15 @@ export default function ProfilePage() {
             <div className="grid grid-cols-3 gap-4">
               <div className="col-span-1">
                 <label className="label">City</label>
-                <input className="input" {...register('city')} />
+                <input className="input" {...register('address_city')} />
               </div>
               <div>
                 <label className="label">Postcode</label>
-                <input className="input" {...register('postcode')} />
+                <input className="input" {...register('address_postcode')} />
               </div>
               <div>
                 <label className="label">Country</label>
-                <input className="input" {...register('country')} />
+                <input className="input" {...register('address_country')} />
               </div>
             </div>
 
