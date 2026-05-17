@@ -41,6 +41,7 @@ import TaxConfigPage from './pages/payroll/TaxConfigPage'
 
 // Payroll
 import GeneratePayslipPage from './pages/payroll/GeneratePayslipPage'
+import PayslipListPage from './pages/payroll/PayslipListPage'
 
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
@@ -105,6 +106,8 @@ export default function App() {
             <Route element={<ProtectedRoute requiredPermission="can_manage_payroll" />}>
               <Route path="/payroll/generate" element={<GeneratePayslipPage />} />
             </Route>
+
+            <Route path="/payroll/payslips" element={<PayslipListPage />} />
 
           </Route>
         </Route>
