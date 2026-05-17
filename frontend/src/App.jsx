@@ -88,6 +88,11 @@ export default function App() {
 
             <Route path="/schedule" element={<SchedulePage />} />
 
+            <Route element={<ProtectedRoute requiredPermission="can_manage_schedule" />}>
+              <Route path="/schedule/shifts/new" element={<ShiftFormPage />} />
+              <Route path="/schedule/shifts/:id/edit" element={<ShiftFormPage />} />
+            </Route>
+
           </Route>
         </Route>
 
