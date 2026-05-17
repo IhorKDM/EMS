@@ -34,6 +34,10 @@ import PositionFormPage from './pages/positions/PositionFormPage'
 
 // Schedule
 import SchedulePage from './pages/schedule/SchedulePage'
+import ShiftFormPage from './pages/schedule/ShiftFormPage'
+
+// Tax config
+import TaxConfigPage from './pages/payroll/TaxConfigPage'
 
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
@@ -84,6 +88,8 @@ export default function App() {
               <Route path="/positions" element={<PositionListPage />} />
               <Route path="/positions/new" element={<PositionFormPage />} />
               <Route path="/positions/:id/edit" element={<PositionFormPage />} />
+              
+              <Route path="/payroll/tax-config" element={<TaxConfigPage />} />
             </Route>
 
             <Route path="/schedule" element={<SchedulePage />} />
