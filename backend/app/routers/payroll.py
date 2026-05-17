@@ -42,11 +42,13 @@ def set_tax_config(
             business_id=business_id,
             income_tax=payload.income_tax,
             ni_rate=payload.ni_rate,
+            tax_threshold=payload.tax_threshold,
         )
         db.add(cfg)
     else:
         cfg.income_tax = payload.income_tax
         cfg.ni_rate = payload.ni_rate
+        cfg.tax_threshold = payload.tax_threshold
 
     log_action(
         db,
@@ -152,6 +154,8 @@ def generate(
         employee_id = payload.employee_id,
         business_id = employee.business_id,
         period_label = payload.period_label,
+        period_start = payload.period_start,
+        period_end = payload.period_end,
         notes = payload.notes,
     )
     log_action(

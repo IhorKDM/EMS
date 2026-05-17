@@ -19,6 +19,9 @@ class PositionBriefResponse(BaseModel):
     id: int
     title: str
     rank: int
+    default_pay_type: str | None = None
+    default_rate: float | None = None
+    default_contract_amount: float | None = None
     permissions: PermissionSchema | None = None
     model_config = {"from_attributes": True}
 

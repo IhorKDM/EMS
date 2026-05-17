@@ -1,6 +1,8 @@
 from datetime import datetime
 from pydantic import BaseModel
 
+from datetime import datetime, date
+
 from app.models.position import PayTypeEnum
 
 class CreatePayConfigRequest(BaseModel):
@@ -40,6 +42,9 @@ class PayslipResponse(BaseModel):
     ni: float
     net: float
     notes: str | None = None
+    breakdown: str | None = None
+    period_start: date | None = None
+    period_end: date | None = None
     created_at: datetime
     model_config = {"from_attributes": True}
 
@@ -47,6 +52,7 @@ class TaxConfigRequest(BaseModel):
     """ Set income tax and NI rates for a business """
     income_tax: float
     ni_rate: float
+    tax_threshold: float = 0.0
 
 class TaxConfigResponse(BaseModel):
     """ Tax config object returned by the API """
@@ -54,12 +60,14 @@ class TaxConfigResponse(BaseModel):
     business_id: int
     income_tax: float
     ni_rate: float
+    tax_threshold: float
     created_at: datetime
     updated_at: datetime
     model_config = {"from_attributes": True}
 
 class GeneratePayslipRequest(BaseModel):
-    """ Request to generate a payslip for a specific period """
     employee_id: int
     period_label: str
+    period_start: date | None = None
+    period_end: date | None = None
     notes: str | None = None
