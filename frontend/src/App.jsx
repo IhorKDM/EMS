@@ -39,6 +39,9 @@ import ShiftFormPage from './pages/schedule/ShiftFormPage'
 // Tax config
 import TaxConfigPage from './pages/payroll/TaxConfigPage'
 
+// Payroll
+import GeneratePayslipPage from './pages/payroll/GeneratePayslipPage'
+
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
   if (!accessToken || !user) return <Navigate to="/login" replace />
@@ -88,7 +91,7 @@ export default function App() {
               <Route path="/positions" element={<PositionListPage />} />
               <Route path="/positions/new" element={<PositionFormPage />} />
               <Route path="/positions/:id/edit" element={<PositionFormPage />} />
-              
+
               <Route path="/payroll/tax-config" element={<TaxConfigPage />} />
             </Route>
 
@@ -97,6 +100,10 @@ export default function App() {
             <Route element={<ProtectedRoute requiredPermission="can_manage_schedule" />}>
               <Route path="/schedule/shifts/new" element={<ShiftFormPage />} />
               <Route path="/schedule/shifts/:id/edit" element={<ShiftFormPage />} />
+            </Route>
+
+            <Route element={<ProtectedRoute requiredPermission="can_manage_payroll" />}>
+              <Route path="/payroll/generate" element={<GeneratePayslipPage />} />
             </Route>
 
           </Route>
