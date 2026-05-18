@@ -44,6 +44,14 @@ import GeneratePayslipPage from './pages/payroll/GeneratePayslipPage'
 import PayslipListPage from './pages/payroll/PayslipListPage'
 import PayslipDetailPage from './pages/payroll/PayslipDetailPage'
 
+// Holidays
+import SubmitHolidayPage from './pages/holidays/SubmitHolidayPage'
+import MyHolidaysPage from './pages/holidays/MyHolidaysPage'
+import ReviewHolidaysPage from './pages/holidays/ReviewHolidaysPage'
+
+// Audit logs
+import AuditLogPage from './pages/logs/AuditLogPage'
+
 function ForcePasswordGuard() {
   const { user, accessToken } = useAuthStore()
   if (!accessToken || !user) return <Navigate to="/login" replace />
@@ -65,36 +73,32 @@ export default function App() {
 
             <Route element={<ProtectedRoute requiredPermissions={['can_add_user', 'can_delete_user']} />}>
               <Route path="/admin/users" element={<UserListPage />} />
-            </Route>
-
-            <Route element={<ProtectedRoute requiredPermissions={['can_add_user', 'can_delete_user']} />}>
-              <Route path="/admin/users" element={<UserListPage />} />
               <Route path="/admin/users/:id" element={<UserDetailPage />} />
             </Route>
 
             <Route element={<ProtectedRoute requiredPermission="can_add_user" />}>
               <Route path="/admin/users/new" element={<CreateUserPage />} />
-            </Route>
-
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin/users/:id/promote" element={<PromoteUserPage />} />
             </Route>
 
+            {/* Admin-only: create/edit business, tax config */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-              <Route path="/business" element={<BusinessListPage />} />
+              <Route path="/business/new" element={<BusinessFormPage />} />
+              <Route path="/business/:id/edit" element={<BusinessFormPage />} />
+              <Route path="/payroll/tax-config" element={<TaxConfigPage />} />
             </Route>
 
-            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            {/* Admin or can_manage_sections: business list + detail */}
+            <Route element={<ProtectedRoute requiredPermission="can_manage_sections" />}>
               <Route path="/business" element={<BusinessListPage />} />
-              <Route path="/business/new" element={<BusinessFormPage />} />
               <Route path="/business/:id" element={<BusinessDetailPage />} />
-              <Route path="/business/:id/edit" element={<BusinessFormPage />} />
+            </Route>
 
+            {/* Admin or can_manage_positions: positions */}
+            <Route element={<ProtectedRoute requiredPermission="can_manage_positions" />}>
               <Route path="/positions" element={<PositionListPage />} />
               <Route path="/positions/new" element={<PositionFormPage />} />
               <Route path="/positions/:id/edit" element={<PositionFormPage />} />
-
-              <Route path="/payroll/tax-config" element={<TaxConfigPage />} />
             </Route>
 
             <Route path="/schedule" element={<SchedulePage />} />
@@ -110,6 +114,17 @@ export default function App() {
 
             <Route path="/payroll/payslips" element={<PayslipListPage />} />
             <Route path="/payroll/payslips/:id" element={<PayslipDetailPage />} />
+
+            <Route path="/holidays/submit" element={<SubmitHolidayPage />} />
+            <Route path="/holidays/mine" element={<MyHolidaysPage />} />
+
+            <Route element={<ProtectedRoute requiredPermission="can_accept_requests" />}>
+              <Route path="/holidays/review" element={<ReviewHolidaysPage />} />
+            </Route>
+
+            <Route element={<ProtectedRoute requiredPermission="can_see_logs" />}>
+              <Route path="/logs" element={<AuditLogPage />} />
+            </Route>
 
           </Route>
         </Route>
