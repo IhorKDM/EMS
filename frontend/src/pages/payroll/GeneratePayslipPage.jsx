@@ -136,12 +136,11 @@ export default function GeneratePayslipPage() {
             </div>
           </div>
 
-          {/* Period label — auto-filled, but editable */}
           <div>
             <label className="label">Period Label</label>
             <input
               className="input"
-              placeholder="e.g. May 2026 (auto-filled from dates)"
+              placeholder="e.g. May 2026"
               {...register('period_label', { required: 'Required' })}
             />
             {errors.period_label && <p className="form-error">{errors.period_label.message}</p>}

@@ -118,7 +118,7 @@ export default function ProfilePage() {
               {getInitials(p?.first_name, p?.last_name)}
             </div>
             {!editing && (
-              <button onClick={handleEdit} className="btn-secondary mb-1">
+              <button onClick={handleEdit} className="btn-secondary mb-0">
                 <Edit2 className="w-4 h-4" /> Edit Profile
               </button>
             )}
@@ -127,7 +127,7 @@ export default function ProfilePage() {
             <div>
               <h2 className="text-xl font-bold text-slate-900">{p?.title} {p?.first_name} {p?.last_name}</h2>
               <div className="flex items-center gap-2 mt-1">
-                <Mail className="w-3.5 h-3.5 text-slate-400" />
+                
                 <span className="text-sm text-slate-500">{p?.email}</span>
               </div>
               {p?.position?.title && (

@@ -78,8 +78,8 @@ export default function EmployeeDashboard() {
             <div key={p.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
               <p className="text-sm text-slate-700">{p.period_label}</p>
               <div className="text-right">
-                <p className="text-sm font-medium text-slate-900">{formatCurrency(p.net_pay)}</p>
-                <p className="text-xs text-slate-400">Gross {formatCurrency(p.gross_pay)}</p>
+                <p className="text-sm font-medium text-slate-900">{formatCurrency(p.net)}</p>
+                <p className="text-xs text-slate-400">Gross {formatCurrency(p.gross)}</p>
               </div>
             </div>
           )) ?? <p className="text-sm text-slate-400">No payslips yet</p>}
