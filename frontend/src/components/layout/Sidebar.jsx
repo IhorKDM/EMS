@@ -132,9 +132,7 @@ export default function Sidebar() {
           )}
 
           <Section label="My">
-            {isEmployee && (
-              <NavItem to="/schedule" icon={Calendar} label="My Schedule" />
-            )}
+            <NavItem to="/schedule" icon={Calendar} label="My Schedule" />
             {isEmployee && (
               <NavItem to="/payroll/payslips" icon={DollarSign} label="My Payslips" />
             )}

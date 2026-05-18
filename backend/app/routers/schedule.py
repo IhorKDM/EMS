@@ -33,7 +33,15 @@ def list_shifts(
     """
     query = db.query(Shift)
 
-    if current_user.role == RoleEnum.employee:
+    # Determine if this user can manage schedules (admin always can)
+    can_manage = current_user.role == RoleEnum.admin or (
+        current_user.position is not None
+        and current_user.position.permissions is not None
+        and current_user.position.permissions.can_manage_schedule
+    )
+
+    if not can_manage:
+        # Employees and managers without the permission see only their own shifts
         query = query.filter(Shift.employee_id == current_user.id)
     else:
         if business_id is not None:

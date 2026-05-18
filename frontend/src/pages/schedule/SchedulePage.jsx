@@ -44,7 +44,8 @@ export default function SchedulePage() {
   const [confirmId, setConfirmId] = useState(null)
 
   const isEmployee = user?.role === 'employee'
-  const canManage = canDo(user, 'can_manage_schedule')
+  const canManage = user?.role === 'admin' || canDo(user, 'can_manage_schedule')
+  const readOnly = !canManage  // everyone without schedule management sees only their own shifts
 
   const weekDates = getWeekDates(weekOffset)
   const weekStart = weekDates[0].toISOString().split('T')[0]
@@ -61,7 +62,7 @@ export default function SchedulePage() {
   const { data: usersData } = useQuery({
     queryKey: ['users'],
     queryFn: listUsers,
-    enabled: !isEmployee,
+    enabled: canManage,
   })
 
   const deleteMutation = useMutation({
@@ -94,9 +95,9 @@ export default function SchedulePage() {
   return (
     <div>
       <PageHeader
-        title={isEmployee ? 'My Schedule' : 'Schedule'}
+        title={readOnly ? 'My Schedule' : 'Schedule'}
         actions={
-          (canManage || user?.role === 'admin') && (
+          canManage && (
             <button onClick={() => navigate('/schedule/shifts/new')} className="btn-primary">
               <Plus className="w-4 h-4" /> Add Shift
             </button>
@@ -167,13 +168,15 @@ export default function SchedulePage() {
                   {dayShifts.map(s => (
                     <div
                       key={s.id}
-                      className={`rounded-lg border px-2 py-1 text-xs cursor-pointer ${colorMap[s.employee_id] ?? COLORS[0]}`}
-                      onClick={() => (canManage || user?.role === 'admin') && navigate(`/schedule/shifts/${s.id}/edit`)}
+                      className={`rounded-lg border px-2 py-1 text-xs ${canManage ? 'cursor-pointer' : ''} ${colorMap[s.employee_id] ?? COLORS[0]}`}
+                      onClick={() => canManage && navigate(`/schedule/shifts/${s.id}/edit`)}
                     >
                       <p className="font-medium truncate">
-                        {isEmployee ? `${s.start_time}–${s.end_time}` : `${userMap[s.employee_id]?.first_name ?? ''} ${userMap[s.employee_id]?.last_name?.[0] ?? ''}.`}
+                        {readOnly
+                          ? `${s.start_time}–${s.end_time}`
+                          : `${userMap[s.employee_id]?.first_name ?? ''} ${userMap[s.employee_id]?.last_name?.[0] ?? ''}.`}
                       </p>
-                      <p className="opacity-70">{s.start_time}–{s.end_time}</p>
+                      {!readOnly && <p className="opacity-70">{s.start_time}–{s.end_time}</p>}
                     </div>
                   ))}
                 </div>
@@ -193,7 +196,7 @@ export default function SchedulePage() {
                   <div className="w-24 flex-shrink-0">
                     <p className="text-sm font-medium text-slate-800">{formatDate(s.work_date)}</p>
                   </div>
-                  {!isEmployee && (
+                  {canManage && (
                     <div className="flex-1">
                       <p className="text-sm text-slate-700">
                         {userMap[s.employee_id]?.first_name} {userMap[s.employee_id]?.last_name}
@@ -204,7 +207,7 @@ export default function SchedulePage() {
                     <p className="text-sm text-slate-600">{s.start_time} – {s.end_time}</p>
                     {s.notes && <p className="text-xs text-slate-400 mt-0.5">{s.notes}</p>}
                   </div>
-                  {(canManage || user?.role === 'admin') && (
+                  {canManage && (
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => navigate(`/schedule/shifts/${s.id}/edit`)}
