@@ -3,6 +3,7 @@ import {
   LayoutDashboard, User, Users, Building2, Briefcase,
   Calendar, DollarSign, Umbrella, ScrollText, LogOut, X, UserPlus
 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../../store/authStore'
 import { useUiStore } from '../../store/uiStore'
 import { canDo } from '../../lib/permissions'
@@ -36,9 +37,11 @@ export default function Sidebar() {
   const { user, logout } = useAuthStore()
   const { sidebarOpen, setSidebarOpen } = useUiStore()
   const navigate = useNavigate()
+  const qc = useQueryClient()
 
   const handleLogout = () => {
     logout()
+    qc.clear()
     toast.success('Logged out')
     navigate('/login')
   }

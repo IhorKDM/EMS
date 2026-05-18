@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { getApiError } from '../../lib/utils'
 import { login, getMe } from '../../api/auth'
@@ -14,6 +15,7 @@ export default function LoginPage() {
   const [authError, setAuthError] = useState('')
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
+  const qc = useQueryClient()
 
   const onSubmit = async ({ email, password }) => {
     setLoading(true)
@@ -23,6 +25,7 @@ export default function LoginPage() {
       setAuth(null, tokens.access_token, tokens.refresh_token)
       const user = await getMe()
       setAuth(user, tokens.access_token, tokens.refresh_token)
+      qc.clear()
       if (user.is_first_login) {
         navigate('/change-password')
       } else {

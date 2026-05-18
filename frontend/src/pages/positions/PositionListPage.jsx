@@ -91,9 +91,14 @@ export default function PositionListPage() {
                     <span className="text-xs text-slate-400">Rank {p.rank}</span>
                     <span className="text-slate-200">·</span>
                     <StatusBadge status={p.default_pay_type} />
-                    {p.default_rate && (
-                      <span className="text-xs text-slate-400">£{p.default_rate}/{p.default_pay_type === 'hourly' ? 'hr' : 'day'}</span>
-                    )}
+                    {p.default_pay_type === 'contract'
+                      ? p.default_contract_amount
+                        ? <span className="text-xs text-slate-400">£{p.default_contract_amount}</span>
+                        : null
+                      : p.default_rate > 0
+                        ? <span className="text-xs text-slate-400">£{p.default_rate}/{p.default_pay_type === 'hourly' ? 'hr' : 'day'}</span>
+                        : null
+                    }
                   </div>
                 </div>
 
