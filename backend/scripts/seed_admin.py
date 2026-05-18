@@ -35,7 +35,7 @@ def main() -> None:
             title=TitleEnum.mr,
             first_name="System",
             last_name="Admin",
-            email="admin@example.com",
+            email="admin@ems.com",
             dob=date(1990, 1, 1),
             address_line1="1 Admin Street",
             address_city="London",
