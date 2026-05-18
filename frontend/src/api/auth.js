@@ -10,6 +10,11 @@ export async function getMe() {
   return data
 }
 
+export async function forgotPassword(email) {
+  const { data } = await client.post('/auth/forgot-password', { email })
+  return data
+}
+
 export async function changePassword(data) {
   const { data: res } = await client.post('/auth/change-password', {
     current_password: data.current_password,

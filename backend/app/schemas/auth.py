@@ -16,3 +16,7 @@ class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str
     confirm_password: str
+
+class ForgotPasswordRequest(BaseModel):
+    """ Email submitted for self-service password reset """
+    email: EmailStr

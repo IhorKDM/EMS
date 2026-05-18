@@ -1,13 +1,15 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.core.dependencies import get_current_active_user
 from app.core.exceptions import BadRequestError, UnauthorizedError
 from app.core.security import (
     create_access_token,
     create_refresh_token,
+    generate_temp_password,
     hash_password,
     validate_password_strength,
     verify_password,
@@ -15,10 +17,44 @@ from app.core.security import (
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.auth import ChangePasswordRequest, LoginRequest, TokenResponse
+from app.schemas.auth import ChangePasswordRequest, ForgotPasswordRequest, LoginRequest, TokenResponse
 from app.schemas.user import UserResponse
+from app.services.email import send_forgot_password_email
+
+settings = get_settings()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.post("/forgot-password")
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """
+    Self-service password reset. Generates a temporary password and emails it.
+    Always returns the same response to avoid leaking whether an email is registered.
+    """
+    user = db.query(User).filter(User.email == payload.email).first()
+
+    if user and user.is_active:
+        temp_pwd = generate_temp_password()
+        expires = datetime.now(timezone.utc) + timedelta(hours=settings.temp_password_ttl_hours)
+        user.hashed_password = hash_password(temp_pwd)
+        user.is_first_login = True
+        user.temp_password_expires_at = expires
+        db.commit()
+
+        if settings.debug:
+            import logging
+            logging.getLogger(__name__).warning(
+                "DEV — password reset  email=%s  temp_password=%s", user.email, temp_pwd
+            )
+
+        background_tasks.add_task(send_forgot_password_email, user.email, user.full_name, temp_pwd)
+
+    return {"message": "If that email is registered, a temporary password has been sent."}
 
 
 @router.post("/login", response_model=TokenResponse)

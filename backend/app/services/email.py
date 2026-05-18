@@ -54,6 +54,25 @@ async def send_password_reset_email(to: str, full_name: str, temp_password: str)
     """
     await _send(to, subject, body)
 
+async def send_forgot_password_email(to: str, full_name: str, temp_password: str) -> None:
+    """ Sent when a user requests a self-service password reset """
+    subject = f"{settings.app_name} — Your temporary password"
+    body = f"""
+    <p>Hello {full_name},</p>
+    <p>We received a password reset request for your <strong>{settings.app_name}</strong> account.</p>
+    <p>Your temporary password is: <strong>{temp_password}</strong></p>
+    <p>This password expires in <strong>{settings.temp_password_ttl_hours} hours</strong>.</p>
+    <p>Once you log in, please change your password immediately:</p>
+    <ol>
+        <li>Go to <strong>My Profile</strong></li>
+        <li>Open the <strong>Security</strong> section</li>
+        <li>Click <strong>Change Password</strong></li>
+    </ol>
+    <p>If you did not request this reset, please contact your administrator.</p>
+    <p>— {settings.app_name} Team</p>
+    """
+    await _send(to, subject, body)
+
 async def send_role_change_email(to: str, full_name: str, new_role: str, position: str) -> None:
     """ Sent when a user's role or position is updated """
     subject = f"{settings.app_name} — Your role has been updated"

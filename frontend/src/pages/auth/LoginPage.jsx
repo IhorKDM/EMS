@@ -1,18 +1,101 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
+import { Eye, EyeOff, Loader2, AlertCircle, X, CheckCircle2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { useMutation } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { getApiError } from '../../lib/utils'
-import { login, getMe } from '../../api/auth'
+import { login, getMe, forgotPassword } from '../../api/auth'
 import { useAuthStore } from '../../store/authStore'
+
+function ForgotPasswordModal({ onClose }) {
+  const [email, setEmail] = useState('')
+  const [done, setDone] = useState(false)
+
+  const mutation = useMutation({
+    mutationFn: () => forgotPassword(email),
+    onSuccess: () => setDone(true),
+    onError: () => setDone(true), // always show success to avoid email enumeration
+  })
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {done ? (
+          <div className="text-center py-2">
+            <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-6 h-6 text-green-500" />
+            </div>
+            <h3 className="text-base font-semibold text-slate-800 mb-2">Check your email</h3>
+            <p className="text-sm text-slate-500 mb-5">
+              If that email is registered, a temporary password has been sent.
+              Use it to log in, then go to{' '}
+              <span className="font-medium text-slate-700">My Profile → Security → Change Password</span>{' '}
+              to set a permanent one.
+            </p>
+            <button onClick={onClose} className="btn-primary w-full justify-center">
+              Back to Login
+            </button>
+          </div>
+        ) : (
+          <>
+            <h3 className="text-base font-semibold text-slate-800 mb-1">Forgot your password?</h3>
+            <p className="text-sm text-slate-500 mb-5">
+              Enter your email and we'll send you a temporary password.
+            </p>
+
+            <div className="space-y-4">
+              <div>
+                <label className="label">Email Address</label>
+                <input
+                  type="email"
+                  className="input"
+                  placeholder="you@company.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && email && mutation.mutate()}
+                  autoFocus
+                />
+              </div>
+
+              <button
+                onClick={() => mutation.mutate()}
+                disabled={!email || mutation.isPending}
+                className="btn-primary w-full justify-center"
+              >
+                {mutation.isPending
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : 'Send Temporary Password'}
+              </button>
+
+              <button
+                onClick={onClose}
+                className="btn-secondary w-full justify-center"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function LoginPage() {
   const { register, handleSubmit, setValue, formState: { errors } } = useForm()
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [showForgot, setShowForgot] = useState(false)
   const { setAuth } = useAuthStore()
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -43,6 +126,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-slate-50 flex items-center justify-center p-4">
+      {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
@@ -89,6 +173,15 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && <p className="form-error">{errors.password.message}</p>}
+              <div className="text-right mt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(true)}
+                  className="text-xs text-primary-600 hover:text-primary-700 hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="btn-primary w-full justify-center py-2.5" disabled={loading}>
