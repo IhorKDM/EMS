@@ -23,9 +23,6 @@ function Hero() {
   return (
     <section className="pt-28 pb-20 px-6">
       <div className="max-w-4xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-700 text-xs font-medium px-3 py-1.5 rounded-full mb-6">
-          <Shield className="w-3.5 h-3.5" /> Secure Employee Management
-        </div>
         <h1 className="text-5xl font-bold text-slate-900 leading-tight mb-6">
           Manage your workforce<br />
           <span className="text-primary-600">with confidence</span>
@@ -35,11 +32,20 @@ function Hero() {
         </p>
         <div className="flex items-center justify-center gap-4">
           <Link to="/login" className="btn-primary px-6 py-3 text-base">
-            Get Started <ArrowRight className="w-4 h-4" />
+            Sign In <ArrowRight className="w-4 h-4" />
           </Link>
           <a href="#features" className="btn-secondary px-6 py-3 text-base">
             Learn More
           </a>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto mt-20 grid grid-cols-2 gap-4">
+        <div className="card p-2 shadow-2xl shadow-slate-200">
+          <img src="/show-img/admin_dashb.png" alt="Admin Dashboard" className="rounded-lg w-full object-cover" />
+        </div>
+        <div className="card p-2 shadow-2xl shadow-slate-200">
+          <img src="/show-img/profile.png" alt="Profile" className="rounded-lg w-full object-cover" />
         </div>
       </div>
 
