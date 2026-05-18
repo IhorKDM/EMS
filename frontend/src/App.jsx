@@ -38,6 +38,7 @@ import ShiftFormPage from './pages/schedule/ShiftFormPage'
 
 // Tax config
 import TaxConfigPage from './pages/payroll/TaxConfigPage'
+import PayConfigPage from './pages/payroll/PayConfigPage'
 
 // Payroll
 import GeneratePayslipPage from './pages/payroll/GeneratePayslipPage'
@@ -81,11 +82,12 @@ export default function App() {
               <Route path="/admin/users/:id/promote" element={<PromoteUserPage />} />
             </Route>
 
-            {/* Admin-only: create/edit business, tax config */}
+            {/* Admin-only: create/edit business, tax config, pay config */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/business/new" element={<BusinessFormPage />} />
               <Route path="/business/:id/edit" element={<BusinessFormPage />} />
               <Route path="/payroll/tax-config" element={<TaxConfigPage />} />
+              <Route path="/payroll/pay-config" element={<PayConfigPage />} />
             </Route>
 
             {/* Admin or can_manage_sections: business list + detail */}

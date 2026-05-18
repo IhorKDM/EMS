@@ -88,6 +88,7 @@ export default function Sidebar() {
               <NavItem to="/business" icon={Building2} label="Businesses" />
               <NavItem to="/positions" icon={Briefcase} label="Positions" />
               <NavItem to="/payroll/tax-config" icon={DollarSign} label="Tax Config" />
+              <NavItem to="/payroll/pay-config" icon={DollarSign} label="Pay Config" />
             </Section>
           )}
 
