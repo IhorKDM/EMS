@@ -2,6 +2,8 @@
 
 A full-stack web application for managing employees, shifts, payroll, and holiday requests across multiple businesses.
 
+> **Final year project** — developed as my BSc Computer Science final project at Birkbeck, University of London (2025–26).
+
 ## Features
 
 - **Role-based access** — Admin, Manager, Employee with granular per-position permission flags
